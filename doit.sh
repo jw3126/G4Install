@@ -12,8 +12,18 @@ export GEANT4SH=$INSTALL/bin/geant4.sh
 mkdir $BUILD
 mkdir $INSTALL
 mkdir $SRC
+
+# get prerequisites
+sudo apt-get install cmake gcc g++ make qt5-default --yes
+
+
+
+
+
+
 # get source and setup directories
 git clone $ORIGIN $SRC
+
 
 
 # the actual build
