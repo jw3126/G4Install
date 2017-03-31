@@ -14,7 +14,9 @@ mkdir $INSTALL
 mkdir $SRC
 
 # get prerequisites
-sudo apt-get install cmake gcc g++ make qt5-default --yes
+sudo apt-get install cmake gcc g++ make --yes
+sudo apt-get install qt5-default --yes
+sudo apt-get install libexpat1-dev --yes
 
 
 
