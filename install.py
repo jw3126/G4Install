@@ -104,6 +104,7 @@ class Installer(object):
         os.environ["GEANT4_INSTALL"] = self.path["install"]
         run(["cmake", ".."])
         run(["make", "-j4"])
+        run(["make", "install"])
 
     
     def run(self):
