@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from subprocess import run
 import subprocess
 from os.path import abspath
@@ -6,7 +7,7 @@ import os
 
 class Installer(object):
 
-# http://geant4.web.cern.ch/geant4/UserDocumentation/UsersGuides/InstallationGuide/html/ch02s03.html
+    # http://geant4.web.cern.ch/geant4/UserDocumentation/UsersGuides/InstallationGuide/html/ch02s03.html
     def __init__(self,
         qt=True,
         gdml=True,
