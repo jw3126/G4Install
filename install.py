@@ -18,6 +18,7 @@ class Installer(object):
         install_path="install",
         python=False,
         multithreaded=True,
+        build_py_path="build_py",
         ):  
         # Design:
         # The constructor does only bookkeeping.
@@ -65,7 +66,9 @@ class Installer(object):
 
         if python:
             assert not multithreaded
+            assert build_py_path is not None
             self.packages.append("libboost-python-dev")
+            self.path["build_py"] = abspath(build_py_path)
             self.build_steps.append(self.python)
 
         self.build_steps.append(self.finish)
@@ -73,44 +76,41 @@ class Installer(object):
     def mkdirs(self):
         for path in self.path.values():
             os.makedirs(path,exist_ok=True)
-
+        return []
 
     def clone(self):
         cmd =["git", "clone", self.origin, self.path["source"], ]
-        print(cmd)
-        run(cmd)
+        return [cmd]
 
 
     def dependencies(self):
-        run(["sudo", "apt-get", "install"] + self.packages + ["--yes"])
+        return [(["sudo", "apt-get", "install"] + self.packages + ["--yes"])]
 
 
     def cmake(self): 
         chdir(self.path["build"])
         cmd = ["cmake", self.path["source"], ]
         cmd += ["-{}={}".format(key, val) for (key, val) in self.cmake_options.items()]
-        run(cmd)
+        return [cmd]
 
 
     def make(self):
         chdir(self.path["build"])
-        run(["make", "-j4"])
-        run(["make", "install"])
+        return [["make", "-j4"], ["make", "install"]]
 
 
     def python(self):
-        py_build_path = os.path.join(self.path["source"], "environments", "g4py", "build")
-        os.makedirs(py_build_path, exist_ok=True)
-        chdir(py_build_path)
+        chdir(self.path["build_py"])
         os.environ["GEANT4_INSTALL"] = self.path["install"]
-        run(["cmake", ".."])
-        run(["make", "-j4"])
-        run(["make", "install"])
+        cmake_path = os.path.join(self.path["source"], "environments", "g4py")
+        return [["cmake", cmake_path], ["make", "-j4"], ["make", "install"]]
 
     
     def run(self):
         for step in self.build_steps:
-            step()
+            cmds = step()
+            for cmd in cmds:
+                run(cmd)
 
     def finish(self):
         g4sh_dir = os.path.join(self.path["install"], "bin")
@@ -121,12 +121,11 @@ class Installer(object):
             source {}
             to your .bashrc
             """.format(g4sh)
-        print(msg)
+        return [["echo", msg]]
 
 
 if __name__ == "__main__":
     Installer(
-            multithreaded=False,
-            python=True
+            multithreaded=True,
+            python=False
             ).run()
-
