@@ -19,6 +19,7 @@ class Installer(object):
         python=False,
         multithreaded=True,
         build_py_path="build_py",
+        build_type="Release"
         ):  
         # Design:
         # The constructor does only bookkeeping.
@@ -45,7 +46,7 @@ class Installer(object):
 
         self.cmake_options = {
             "DGEANT4_INSTALL_DATA":"ON",
-            "DCMAKE_BUILD_TYPE":"Release",
+            "DCMAKE_BUILD_TYPE":build_type,
             "DCMAKE_INSTALL_PREFIX":self.path["install"],
             }
 
@@ -126,6 +127,7 @@ class Installer(object):
 
 if __name__ == "__main__":
     Installer(
-            multithreaded=True,
+            multithreaded=False,
+            build_type="Debug",
             python=False
             ).run()
