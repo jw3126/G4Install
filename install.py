@@ -18,6 +18,7 @@ class Installer(object):
         install_path="install",
         python=False,
         multithreaded=True,
+        cxx_standard=14
         ):  
         # Design:
         # The constructor does only bookkeeping.
@@ -47,6 +48,9 @@ class Installer(object):
             "DCMAKE_BUILD_TYPE":"Release",
             "DCMAKE_INSTALL_PREFIX":self.path["install"],
             }
+        
+        if cxx_standard is not None:
+            self.cmake_options["DGEANT4_BUILD_CXXSTD"]=cxx_standard
 
         if gdml:
             self.packages.append("libxerces-c-dev")
@@ -126,7 +130,7 @@ class Installer(object):
 
 if __name__ == "__main__":
     Installer(
-            multithreaded=False,
-            python=True
+            multithreaded=True,
+            python=False
             ).run()
 
