@@ -16,6 +16,7 @@ class Installer(object):
         source_path="source",
         origin="https://github.com/Geant4/geant4.git",
         install_path="install",
+        install_data=True,
         python=False,
         multithreaded=True,
         cxx_standard=14
@@ -44,10 +45,14 @@ class Installer(object):
         self.packages = ["cmake", "gcc", "g++", "make", "libexpat1-dev"]
 
         self.cmake_options = {
-            "DGEANT4_INSTALL_DATA":"ON",
             "DCMAKE_BUILD_TYPE":"Release",
             "DCMAKE_INSTALL_PREFIX":self.path["install"],
             }
+
+        if install_data:
+            self.cmake_options["DGEANT4_INSTALL_DATA"]="ON"
+        else:
+            self.cmake_options["DGEANT4_INSTALL_DATA"]="OFF"
         
         if cxx_standard is not None:
             self.cmake_options["DGEANT4_BUILD_CXXSTD"]=cxx_standard
@@ -60,7 +65,7 @@ class Installer(object):
             self.packages.append("qt5-default")
             self.cmake_options["DGEANT4_USE_QT"]="ON"
 
-        if datadir is not None:
+        if datadir is not None: # and install_data:
             self.path["datadir"] = abspath(datadir)
             self.cmake_options["DGEANT4_INSTALL_DATADIR"]=self.path["datadir"]
 
@@ -81,7 +86,6 @@ class Installer(object):
 
     def clone(self):
         cmd =["git", "clone", self.origin, self.path["source"], ]
-        print(cmd)
         run(cmd)
 
 
@@ -131,6 +135,7 @@ class Installer(object):
 if __name__ == "__main__":
     Installer(
             multithreaded=True,
-            python=False
+            python=False,
+            install_data=False,
             ).run()
 
