@@ -16,10 +16,12 @@ class Installer(object):
         source_path="source",
         origin="https://github.com/Geant4/geant4.git",
         install_path="install",
+        install_data=True,
         python=False,
         multithreaded=True,
         build_py_path="build_py",
-        build_type="Release"
+        build_type="Release",
+        cxx_standard=14
         ):  
         # Design:
         # The constructor does only bookkeeping.
@@ -50,6 +52,14 @@ class Installer(object):
             "DCMAKE_INSTALL_PREFIX":self.path["install"],
             }
 
+        if install_data:
+            self.cmake_options["DGEANT4_INSTALL_DATA"]="ON"
+        else:
+            self.cmake_options["DGEANT4_INSTALL_DATA"]="OFF"
+        
+        if cxx_standard is not None:
+            self.cmake_options["DGEANT4_BUILD_CXXSTD"]=cxx_standard
+
         if gdml:
             self.packages.append("libxerces-c-dev")
             self.cmake_options["DGEANT4_USE_GDML"]="ON"
@@ -58,7 +68,7 @@ class Installer(object):
             self.packages.append("qt5-default")
             self.cmake_options["DGEANT4_USE_QT"]="ON"
 
-        if datadir is not None:
+        if datadir is not None: # and install_data:
             self.path["datadir"] = abspath(datadir)
             self.cmake_options["DGEANT4_INSTALL_DATADIR"]=self.path["datadir"]
 
@@ -129,5 +139,6 @@ if __name__ == "__main__":
     Installer(
             multithreaded=False,
             build_type="Debug",
-            python=False
+            python=False,
+            install_data=True,
             ).run()
