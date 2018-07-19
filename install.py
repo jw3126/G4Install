@@ -4,8 +4,9 @@ import subprocess
 from os.path import abspath
 from os import chdir
 import os
+import multiprocessing
 
-class Installer(object):
+class GeantInstaller(object):
 
     # http://geant4.web.cern.ch/geant4/UserDocumentation/UsersGuides/InstallationGuide/html/ch02s03.html
     def __init__(self,
@@ -21,7 +22,9 @@ class Installer(object):
         multithreaded=True,
         build_py_path="build_py",
         build_type="Release",
-        cxx_standard=14
+        cxx_standard=14,
+        tag="master",
+        nthreads=None
         ):  
         # Design:
         # The constructor does only bookkeeping.
@@ -30,6 +33,12 @@ class Installer(object):
         #
         # The various methods are resposible for carrying out the actual build
 
+        if nthreads is None:
+            nthreads = multiprocessing.cpu_count() - 1
+            nthreads = max(1, nthreads)
+        self.nthreads = nthreads
+
+        self.tag = tag
         self.origin = origin
         self.path = {
                 "source":abspath(source_path),
@@ -40,6 +49,7 @@ class Installer(object):
         self.build_steps = [
                 self.mkdirs,
                 self.clone,
+                self.checkout,
                 self.dependencies,
                 self.cmake,
                 self.make]
@@ -93,6 +103,11 @@ class Installer(object):
         cmd =["git", "clone", self.origin, self.path["source"], ]
         return [cmd]
 
+    def checkout(self):
+        chdir(self.path["source"])
+        cmd = ["git", "checkout", self.tag]
+        return [cmd]
+
 
     def dependencies(self):
         return [(["sudo", "apt-get", "install"] + self.packages + ["--yes"])]
@@ -107,14 +122,14 @@ class Installer(object):
 
     def make(self):
         chdir(self.path["build"])
-        return [["make", "-j4"], ["make", "install"]]
+        return [["make", "-j{}".format(self.nthreads)], ["make", "install"]]
 
 
     def python(self):
         chdir(self.path["build_py"])
         os.environ["GEANT4_INSTALL"] = self.path["install"]
         cmake_path = os.path.join(self.path["source"], "environments", "g4py")
-        return [["cmake", cmake_path], ["make", "-j4"], ["make", "install"]]
+        return [["cmake", cmake_path], ["make", "-j{}".format(self.nthreads)], ["make", "install"]]
 
     
     def run(self):
@@ -129,6 +144,7 @@ class Installer(object):
         chdir(g4sh_dir)
         subprocess.call(g4sh)
         msg = """Consider adding 
+            #### Geant 4
             source {}
             to your .bashrc
             """.format(g4sh)
@@ -136,9 +152,11 @@ class Installer(object):
 
 
 if __name__ == "__main__":
-    Installer(
+    GeantInstaller(
             multithreaded=False,
-            build_type="Debug",
+            build_type="Release",
             python=False,
+            qt=False,
+            tag="v10.3.3",
             install_data=True,
             ).run()
